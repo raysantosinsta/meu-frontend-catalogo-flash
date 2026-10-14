@@ -1,393 +1,551 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  Zap,
-  Smartphone,
-  Sparkles,
-  ShoppingBag,
   ArrowRight,
-  CheckCircle2,
-  ShieldCheck,
   Camera,
-  Share2,
-  MessageCircle,
-  TrendingUp,
   Check,
-  X,
   ChevronDown,
-  Star,
-  Clock,
+  MessageCircle,
+  Share2,
+  ShoppingBag,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 
+interface MockProduct {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description: string;
+  badge?: string;
+  photoEmoji: string;
+  photoBg: string;
+}
+
+const mockProducts: MockProduct[] = [
+  {
+    id: '1',
+    name: 'Vestido Midi Canelado',
+    category: 'Moda Feminina',
+    price: 149.9,
+    description: 'Malha encorpada com caimento estruturado e acabamento impecável.',
+    badge: 'Mais Vendido',
+    photoEmoji: '👗',
+    photoBg: 'bg-stone-200 text-stone-800',
+  },
+  {
+    id: '2',
+    name: 'Fone Bluetooth Pro Wireless',
+    category: 'Eletrônicos & Acessórios',
+    price: 189.0,
+    description: 'Cancelamento ativo de ruído, bateria de 24h e estojo de recarga rápida.',
+    badge: 'Destaque',
+    photoEmoji: '🎧',
+    photoBg: 'bg-indigo-100 text-indigo-950',
+  },
+  {
+    id: '3',
+    name: 'Vela Aromática Artesanal',
+    category: 'Casa & Presentes',
+    price: 79.5,
+    description: 'Cera 100% vegetal com essência pura de lavanda e baunilha suave.',
+    badge: 'Pronta Entrega',
+    photoEmoji: '🕯️',
+    photoBg: 'bg-amber-100 text-amber-950',
+  },
+];
+
 export default function Home() {
+  const [selectedProductIndex, setSelectedProductIndex] = useState(0);
+  const [simulatedCartCount, setSimulatedCartCount] = useState(1);
+  const [activeSimulatorTab, setActiveSimulatorTab] = useState<'storefront' | 'whatsapp' | 'admin'>('storefront');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
-    setOpenFaq(openFaq === index ? null : index);
+    setOpenFaq((prev) => (prev === index ? null : index));
   };
+
+  const currentProduct = mockProducts[selectedProductIndex];
+
+  const formattedPrice = currentProduct.price.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
 
   const faqs = [
     {
-      q: 'Preciso de um computador para usar o CatálogoFlash?',
-      a: 'Não! O CatálogoFlash foi projetado 100% mobile-first. Você tira as fotos direto da câmera do celular, cadastra o preço na arara da loja e publica em segundos.',
+      q: 'Preciso de computador para gerenciar o catálogo?',
+      a: 'Não. Todo o CatálogoFlash foi pensado para a rotina da loja: você tira a foto do produto com a própria câmera do celular, digita o nome e o preço, e ele já vai para o ar.',
     },
     {
-      q: 'Existe alguma taxa ou porcentagem sobre as minhas vendas?',
-      a: 'Zero taxas por pedido. Todas as vendas são fechadas diretamente no seu WhatsApp pessoal ou comercial, e o dinheiro do cliente cai 100% direto na sua conta ou chave PIX.',
+      q: 'Vocês cobram comissão sobre as minhas vendas?',
+      a: 'Nenhuma comissão. O cliente fecha a compra diretamente no seu WhatsApp pessoal ou profissional. O pagamento cai direto na sua conta bancária via PIX ou máquina de cartão.',
     },
     {
-      q: 'Como os clientes recebem o catálogo?',
-      a: 'Você recebe um link exclusivo e personalizado (ex: catalogoflash.com/sua-loja). Basta colar na bio do seu Instagram, mandar em listas de transmissão ou nos grupos VIP de clientes.',
+      q: 'Como os clientes chegam até a minha vitrine?',
+      a: 'Você ganha um link exclusivo (ex: catalogoflash.com/sua-loja). Basta colar na bio do seu Instagram, nos Stories ou enviar em listas de transmissão e grupos de clientes.',
     },
     {
-      q: 'As fotos demoram para carregar no celular dos clientes?',
-      a: 'Não! Usamos compressão inteligente de última geração em WebP aliada à rede global de entrega ultra-rápida do Cloudflare R2. As peças carregam instantaneamente até no 4G.',
+      q: 'As fotos demoram para carregar no celular do cliente?',
+      a: 'Não. Usamos compressão WebP em milissegundos e distribuição via Cloudflare. A vitrine abre em menos de 1 segundo, mesmo em conexões móveis 4G oscilantes.',
     },
     {
-      q: 'O que acontece quando uma peça esgota?',
-      a: 'Você entra no seu painel com 1 toque no celular e marca a peça como "Esgotado". Ela deixa de receber pedidos na vitrine pública imediatamente, evitando frustração de clientes.',
+      q: 'Como aviso quando um produto do estoque esgotou?',
+      a: 'Basta um toque no painel do celular para desativar o produto. Ele some da vitrine imediatamente, evitando que clientes peçam itens esgotados.',
     },
   ];
 
   return (
-    <div className="w-full min-h-screen bg-stone-950 text-stone-100 flex flex-col selection:bg-amber-500 selection:text-stone-950 overflow-x-hidden">
-      {/* Background Glow Efeitos Ambientais */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] sm:w-[900px] h-[500px] bg-gradient-to-b from-amber-500/15 via-amber-500/5 to-transparent rounded-full blur-3xl opacity-80" />
-        <div className="absolute top-1/3 -right-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
-        <div className="absolute top-2/3 -left-40 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
-      </div>
-
-      {/* Topo / Barra de Navegação */}
-      <header className="w-full border-b border-stone-800/80 bg-stone-950/80 backdrop-blur-xl sticky top-0 z-50">
+    <div className="w-full min-h-screen bg-[#FAF8F5] text-[#18181B] flex flex-col font-sans selection:bg-[#E7E2DA] selection:text-[#18181B]">
+      {/* Barra de Navegação */}
+      <header className="sticky top-0 z-40 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-stone-200/70">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-stone-950 font-black shadow-lg shadow-amber-500/25 group-hover:scale-105 transition-transform duration-200">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-xl bg-stone-900 text-stone-100 flex items-center justify-center font-bold text-base shadow-xs">
               ⚡
             </span>
-            <span className="font-black text-xl tracking-tight text-white">
-              Catálogo<span className="text-amber-400">Flash</span>
-            </span>
+            <div className="flex flex-col">
+              <span className="font-extrabold text-lg tracking-tight text-stone-900 leading-none">
+                CatálogoFlash
+              </span>
+              <span className="text-[11px] text-stone-500 font-medium">para lojistas e comércio local</span>
+            </div>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <nav className="flex items-center gap-3 sm:gap-4">
             <Link
               href="/login"
-              className="text-xs sm:text-sm font-semibold text-stone-300 hover:text-white px-3 py-2 rounded-xl transition hover:bg-stone-900/60"
+              className="text-xs sm:text-sm font-medium text-stone-600 hover:text-stone-900 px-3 py-2 rounded-xl transition"
             >
-              Já tenho loja
+              Já tenho conta
             </Link>
             <Link
               href="/login"
-              className="text-xs sm:text-sm font-bold bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 px-4 sm:px-5 py-2.5 rounded-xl transition shadow-lg shadow-amber-500/20 flex items-center gap-1.5"
+              className="text-xs sm:text-sm font-semibold bg-stone-900 hover:bg-stone-800 text-stone-50 px-4 sm:px-5 py-2.5 rounded-xl transition shadow-xs flex items-center gap-1.5"
             >
-              <span>Criar Catálogo</span>
-              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Criar vitrine</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-          </div>
+          </nav>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-16 sm:pb-24 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-        {/* Coluna Texto / Copywriting de Alta Conversão */}
-        <div className="flex-1 text-center lg:text-left">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/15 to-amber-500/5 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-amber-400 text-xs font-bold mb-6 shadow-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-            </span>
-            <span>A ferramenta definitiva para lojistas de moda</span>
+      {/* Hero: Editorial & Prova Visual Imediata */}
+      <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-16 sm:pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+          {/* Lado Esquerdo: Mensagem Forte e Sem Clichês */}
+          <div className="lg:col-span-7 flex flex-col items-start text-left">
+            <div className="inline-flex items-center gap-2 bg-stone-200/70 text-stone-800 text-xs font-semibold px-3 py-1 rounded-full mb-6">
+              <span>Vitrine digital em 30 segundos por produto</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-stone-900 leading-[1.12] max-w-2xl">
+              Seus produtos merecem mais do que fotos perdidas em mensagens soltas.
+            </h1>
+
+            <p className="text-stone-600 text-base sm:text-lg mt-5 leading-relaxed max-w-xl">
+              Fotografe seus produtos pelo celular, defina o preço e compartilhe uma vitrine digital
+              impecável na bio do Instagram. O cliente escolhe os itens e você recebe o pedido pronto
+              no WhatsApp com sacola calculada.
+            </p>
+
+            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+              <Link
+                href="/login"
+                className="bg-stone-900 hover:bg-stone-800 text-stone-50 font-bold py-3.5 px-7 rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm transition"
+              >
+                <span>Criar catálogo da minha loja</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <a
+                href="#simulador"
+                className="bg-white hover:bg-stone-100 text-stone-700 font-semibold py-3.5 px-6 rounded-xl text-sm border border-stone-200 text-center transition"
+              >
+                Ver demonstração abaixo
+              </a>
+            </div>
+
+            {/* Fatos Práticos */}
+            <div className="mt-8 pt-6 border-t border-stone-200/80 flex flex-wrap gap-x-6 gap-y-2 text-xs text-stone-500">
+              <span className="flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-stone-900 stroke-[3]" /> Funciona 100% no celular
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-stone-900 stroke-[3]" /> Sem taxas sobre pedidos
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-stone-900 stroke-[3]" /> O cliente não precisa baixar aplicativo
+              </span>
+            </div>
           </div>
 
-          {/* Headline Poderosa */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.12]">
-            Chega de fotos perdidas no WhatsApp. <br className="hidden sm:inline" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500">
-              Venda suas peças em 30 segundos.
-            </span>
-          </h1>
-
-          {/* Subheadline Focada na Solução */}
-          <p className="text-stone-300 text-sm sm:text-base lg:text-lg mt-5 sm:mt-6 leading-relaxed max-w-xl mx-auto lg:mx-0">
-            Tire foto da arara com o próprio celular, defina o valor e envie um catálogo digital impecável na bio e nos grupos. Seu cliente escolhe e envia o pedido pronto no seu WhatsApp.
-          </p>
-
-          {/* Call to Actions */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
-            <Link
-              href="/login"
-              className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-stone-950 font-extrabold py-4 px-8 rounded-2xl text-base flex items-center justify-center gap-2.5 shadow-xl shadow-amber-500/25 transition duration-200"
-            >
-              <span>Criar Meu Catálogo Grátis</span>
-              <ArrowRight className="w-4 h-4 stroke-[3]" />
-            </Link>
-            <Link
-              href="/login"
-              className="w-full sm:w-auto bg-stone-900/90 hover:bg-stone-800 border border-stone-700/80 text-stone-200 font-semibold py-4 px-6 rounded-2xl text-sm flex items-center justify-center gap-2 transition"
-            >
-              <Smartphone className="w-4 h-4 text-amber-400" />
-              <span>Ver Como Funciona</span>
-            </Link>
-          </div>
-
-          {/* Micro-bullets de Confiança */}
-          <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs text-stone-400">
-            <span className="flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> 100% no celular
-            </span>
-            <span className="flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Zero taxa sobre vendas
-            </span>
-            <span className="flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Sem apps para o cliente baixar
-            </span>
-          </div>
-        </div>
-
-        {/* Coluna Visual: Mockup Interativo do Smartphone */}
-        <div className="flex-1 w-full max-w-sm sm:max-w-md relative">
-          <div className="relative mx-auto rounded-[2.5rem] p-3 bg-gradient-to-b from-stone-700/60 to-stone-900/90 border border-stone-700/50 shadow-2xl shadow-black/80">
-            {/* Tela do Celular */}
-            <div className="bg-stone-900 rounded-[2rem] overflow-hidden border border-stone-800 text-stone-100 flex flex-col shadow-inner">
-              {/* Header do App Simulado */}
-              <div className="bg-stone-950/90 px-4 py-3 border-b border-stone-800 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-amber-500 text-stone-950 font-black text-xs flex items-center justify-center">
-                    B
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-white leading-none">Boutique Bella</p>
-                    <span className="text-[10px] text-emerald-400 flex items-center gap-1 mt-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      Atendimento Aberto
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[10px] bg-stone-800 text-stone-300 font-semibold px-2 py-1 rounded-md">
-                  Vitrine Oficial
+          {/* Lado Direito: Simulador Visual Interativo da Boutique */}
+          <div id="simulador" className="lg:col-span-5 w-full">
+            <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xl overflow-hidden p-4 sm:p-5">
+              {/* Controles do Simulador */}
+              <div className="flex items-center justify-between pb-3.5 border-b border-stone-100 mb-4">
+                <span className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Demonstração da Experiência
                 </span>
+
+                {/* Alternador de visualização */}
+                <div className="flex bg-stone-100 p-0.5 rounded-lg text-[11px] font-semibold text-stone-600">
+                  <button
+                    type="button"
+                    onClick={() => setActiveSimulatorTab('storefront')}
+                    className={`px-2.5 py-1 rounded-md transition ${
+                      activeSimulatorTab === 'storefront' ? 'bg-white text-stone-900 shadow-2xs font-bold' : ''
+                    }`}
+                  >
+                    Vitrine
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSimulatorTab('whatsapp')}
+                    className={`px-2.5 py-1 rounded-md transition ${
+                      activeSimulatorTab === 'whatsapp' ? 'bg-white text-stone-900 shadow-2xs font-bold' : ''
+                    }`}
+                  >
+                    WhatsApp
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSimulatorTab('admin')}
+                    className={`px-2.5 py-1 rounded-md transition ${
+                      activeSimulatorTab === 'admin' ? 'bg-white text-stone-900 shadow-2xs font-bold' : ''
+                    }`}
+                  >
+                    Painel 30s
+                  </button>
+                </div>
               </div>
 
-              {/* Card de Produto Exemplo no Mockup */}
-              <div className="p-3.5 space-y-3 bg-stone-900/60">
-                <div className="bg-stone-950 rounded-2xl overflow-hidden border border-stone-800">
-                  <div className="relative aspect-[4/5] bg-stone-800 flex items-center justify-center overflow-hidden">
-                    {/* Imagem de Demonstração / Ilustração Premium */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-stone-900 via-amber-950/20 to-stone-800 flex flex-col items-center justify-center text-center p-4">
-                      <span className="text-5xl mb-2">👗</span>
-                      <span className="text-xs font-semibold text-stone-300">Vestido Canelado Midi</span>
-                      <span className="text-[10px] text-amber-400 font-medium">Tecido Premium • Cores P e M</span>
+              {/* Seletor de Produtos */}
+              <div className="mb-4">
+                <span className="text-[11px] font-medium text-stone-500 block mb-2">
+                  Escolha um produto para testar a experiência:
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  {mockProducts.map((p, idx) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSelectedProductIndex(idx)}
+                      className={`text-left p-2 rounded-xl border text-xs transition cursor-pointer ${
+                        selectedProductIndex === idx
+                          ? 'border-stone-900 bg-stone-900 text-white font-semibold'
+                          : 'border-stone-200 hover:border-stone-300 text-stone-700 bg-stone-50'
+                      }`}
+                    >
+                      <div className="text-base mb-1">{p.photoEmoji}</div>
+                      <div className="truncate font-medium">{p.name}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Conteúdo Dinâmico por Aba */}
+              {activeSimulatorTab === 'storefront' && (
+                <div className="bg-stone-50 rounded-2xl p-3 border border-stone-100 flex flex-col">
+                  {/* Card Simulado da Loja */}
+                  <div className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-2xs">
+                    <div
+                      className={`aspect-4/3 w-full ${currentProduct.photoBg} flex flex-col items-center justify-center p-4 relative`}
+                    >
+                      <span className="text-5xl">{currentProduct.photoEmoji}</span>
+                      {currentProduct.badge && (
+                        <span className="absolute top-2.5 left-2.5 bg-stone-900 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-400" />
+                          {currentProduct.badge}
+                        </span>
+                      )}
+                      <span className="absolute bottom-2 right-2 bg-white/90 text-stone-900 text-[11px] font-bold px-2 py-0.5 rounded-md shadow-2xs">
+                        {currentProduct.category}
+                      </span>
                     </div>
-                    <span className="absolute top-2.5 left-2.5 bg-amber-500 text-stone-950 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow">
-                      Destaque ⚡
+
+                    <div className="p-3.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-bold text-stone-900 text-sm">{currentProduct.name}</h4>
+                        <span className="font-extrabold text-stone-900 text-sm shrink-0">
+                          {formattedPrice}
+                        </span>
+                      </div>
+                      <p className="text-stone-500 text-xs mt-1 leading-snug line-clamp-2">
+                        {currentProduct.description}
+                      </p>
+
+                      <div className="mt-3.5 pt-3 border-t border-stone-100 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSimulatedCartCount((prev) => prev + 1)}
+                          className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-900 text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5 text-stone-700" />
+                          <span>+ Sacola ({simulatedCartCount})</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setActiveSimulatorTab('whatsapp')}
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>Pedir</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pílula de Sacola Flutuante Simulada */}
+                  <div className="mt-3 bg-stone-900 text-white p-2.5 rounded-xl flex items-center justify-between shadow-md">
+                    <div className="flex items-center gap-2 pl-1">
+                      <ShoppingBag className="w-4 h-4 text-emerald-400" />
+                      <span className="text-xs font-semibold">
+                        {simulatedCartCount} {simulatedCartCount === 1 ? 'item na sacola' : 'itens na sacola'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveSimulatorTab('whatsapp')}
+                      className="bg-emerald-500 hover:bg-emerald-400 text-stone-950 text-xs font-bold px-3 py-1 rounded-lg transition"
+                    >
+                      Enviar no Whats
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeSimulatorTab === 'whatsapp' && (
+                <div className="bg-[#EFEAE2] rounded-2xl p-4 border border-stone-200 flex flex-col gap-3">
+                  <div className="flex items-center gap-2 pb-2 border-b border-stone-300/60">
+                    <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                      W
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-stone-900 leading-none">
+                        Atendimento da Sua Loja
+                      </p>
+                      <span className="text-[10px] text-stone-500">Mensagem que você recebe pronta</span>
+                    </div>
+                  </div>
+
+                  {/* Balão de Mensagem do WhatsApp */}
+                  <div className="bg-white rounded-xl rounded-tl-none p-3 shadow-2xs border border-stone-200/80 text-xs text-stone-800 space-y-1.5 self-start max-w-[90%]">
+                    <p className="font-medium">Olá! Gostaria de pedir estes itens do catálogo online:</p>
+                    <div className="bg-stone-50 p-2 rounded-lg border border-stone-100 font-mono text-[11px] text-stone-700">
+                      • 1x <strong>{currentProduct.name}</strong> ({formattedPrice})
+                      <br />
+                      • 1x <strong>Garrafa Térmica Inox</strong> (R$ 79,90)
+                    </div>
+                    <p className="font-bold text-stone-900 pt-0.5">Total estimado: R$ 229,80</p>
+                    <p className="text-[10px] text-stone-500 pt-1">
+                      Você aceita PIX? Tem entrega rápida para hoje?
+                    </p>
+                    <span className="text-[9px] text-stone-400 block text-right pt-1">14:32 ✓✓</span>
+                  </div>
+
+                  <p className="text-[11px] text-stone-600 italic">
+                    ⚡ Sem perder tempo explicando preços ou mandando fotos repetidas. Você só confirma a disponibilidade e passa a chave PIX.
+                  </p>
+                </div>
+              )}
+
+              {activeSimulatorTab === 'admin' && (
+                <div className="bg-stone-900 text-white rounded-2xl p-4 border border-stone-800 flex flex-col gap-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                      <Camera className="w-3.5 h-3.5" />
+                      Cadastro em 30 Segundos
+                    </span>
+                    <span className="text-[10px] bg-stone-800 text-stone-300 px-2 py-0.5 rounded">
+                      Mobile Only
                     </span>
                   </div>
 
-                  <div className="p-3 bg-stone-950">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-white">Vestido Canelado Midi</h4>
-                      <span className="text-xs font-black text-amber-400">R$ 129,90</span>
+                  <div className="space-y-2 text-xs">
+                    <div className="bg-stone-800/80 p-2.5 rounded-xl border border-stone-700/60 flex items-center justify-between">
+                      <span className="text-stone-300">1. Foto direta da câmera</span>
+                      <span className="text-emerald-400 font-bold text-[11px]">✓ Otimizada WebP</span>
                     </div>
-                    <p className="text-[10px] text-stone-400 mt-1 line-clamp-1">
-                      Caimento acinturado perfeito para eventos ou dia a dia.
-                    </p>
+                    <div className="bg-stone-800/80 p-2.5 rounded-xl border border-stone-700/60 flex items-center justify-between">
+                      <span className="text-stone-300">2. Nome e Preço</span>
+                      <span className="text-white font-mono font-bold text-[11px]">{currentProduct.name} • {formattedPrice}</span>
+                    </div>
+                    <div className="bg-stone-800/80 p-2.5 rounded-xl border border-stone-700/60 flex items-center justify-between">
+                      <span className="text-stone-300">3. Destaque na vitrine</span>
+                      <span className="text-amber-400 font-bold text-[11px]">⚡ Ativo no Topo</span>
+                    </div>
+                  </div>
 
-                    <div className="mt-2.5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] py-2 rounded-xl flex items-center justify-center gap-1.5 shadow">
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      <span>Pedir no WhatsApp</span>
-                    </div>
+                  <div className="bg-emerald-950/60 border border-emerald-500/30 p-2.5 rounded-xl text-center">
+                    <span className="text-xs font-bold text-emerald-300">
+                      Publicado na vitrine da sua loja!
+                    </span>
                   </div>
                 </div>
-              </div>
-
-              {/* Notificação Flutuante Simulada do WhatsApp */}
-              <div className="p-3 bg-stone-950/80 border-t border-stone-800/80">
-                <div className="bg-emerald-950/70 border border-emerald-500/30 p-2.5 rounded-xl flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center text-stone-950 font-bold shrink-0">
-                    <MessageCircle className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold text-emerald-300 truncate">Novo pedido recebido!</p>
-                    <p className="text-[9px] text-stone-300 truncate">
-                      "Olá! Vi o *Vestido Canelado Midi* (R$ 129,90) e gostaria de pedir!"
-                    </p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Comparativo: O Caos do WhatsApp vs. CatálogoFlash */}
-      <section className="relative z-10 w-full bg-stone-900/60 border-y border-stone-800/80 py-16 sm:py-24">
+      {/* Seção de Contraste Real: O Fim do Atendimento Cansativo */}
+      <section className="w-full bg-white border-y border-stone-200/80 py-16 sm:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-            <span className="text-amber-400 text-xs font-extrabold uppercase tracking-widest">
-              Por que mudar hoje?
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-black text-white mt-2 leading-tight">
-              A diferença entre perder clientes e dobrar suas conversões
+          <div className="max-w-2xl mb-12">
+            <span className="text-xs font-semibold text-stone-500">Comparativo prático</span>
+            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-stone-900 mt-1.5">
+              Por que mandar fotos soltas no WhatsApp custa caro para a sua loja
             </h2>
-            <p className="text-stone-400 text-xs sm:text-sm mt-3">
-              Vender pelo WhatsApp não precisa ser uma maratona cansativa de responder as mesmas perguntas o dia todo.
+            <p className="text-stone-600 text-sm sm:text-base mt-3">
+              Lojistas perdem em média 3 horas por dia respondendo as mesmas perguntas. Uma
+              vitrine digital limpa inverte essa lógica.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-            {/* O Jeito Tradicional / Ruim */}
-            <div className="bg-stone-950/80 border border-rose-900/30 rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* O Jeito Tradicional */}
+            <div className="bg-stone-50 rounded-2xl p-6 sm:p-8 border border-stone-200 flex flex-col justify-between">
               <div>
-                <div className="inline-flex items-center gap-2 bg-rose-500/10 text-rose-400 text-xs font-bold px-3 py-1 rounded-full mb-5">
-                  <X className="w-3.5 h-3.5" /> Jeito Antigo e Cansativo
-                </div>
-                <h3 className="text-lg font-bold text-stone-200 mb-4">Fotos soltas e clientes desistindo</h3>
+                <h3 className="font-bold text-stone-900 text-lg mb-4">
+                  O caos das fotos soltas no feed e status
+                </h3>
 
-                <ul className="space-y-3.5 text-xs sm:text-sm text-stone-400">
-                  <li className="flex items-start gap-2.5">
-                    <X className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                    <span>Disparar 40 fotos no grupo ou status e travar o celular do cliente.</span>
+                <ul className="space-y-4 text-xs sm:text-sm text-stone-600">
+                  <li className="flex items-start gap-3">
+                    <span className="text-rose-500 font-bold shrink-0 mt-0.5">—</span>
+                    <span>Disparo de dezenas de fotos em grupos que ninguém baixa e que enchem a memória do celular do cliente.</span>
                   </li>
-                  <li className="flex items-start gap-2.5">
-                    <X className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                    <span>Ter que responder "quanto custa?" e "qual o tamanho?" 50 vezes por dia.</span>
+                  <li className="flex items-start gap-3">
+                    <span className="text-rose-500 font-bold shrink-0 mt-0.5">—</span>
+                    <span>Ter que responder &ldquo;qual o valor?&rdquo; e &ldquo;ainda tem disponível?&rdquo; dezenas de vezes para o mesmo item.</span>
                   </li>
-                  <li className="flex items-start gap-2.5">
-                    <X className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                    <span>Cliente quer uma peça que já esgotou e fica frustrado.</span>
+                  <li className="flex items-start gap-3">
+                    <span className="text-rose-500 font-bold shrink-0 mt-0.5">—</span>
+                    <span>Cliente se interessa por um produto que já esgotou ontem e fica frustrado.</span>
                   </li>
-                  <li className="flex items-start gap-2.5">
-                    <X className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                    <span>Conversas perdidas no meio de dezenas de mensagens sem fechar a venda.</span>
+                  <li className="flex items-start gap-3">
+                    <span className="text-rose-500 font-bold shrink-0 mt-0.5">—</span>
+                    <span>Conversas perdidas no meio do WhatsApp antes de mandar o PIX.</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="mt-8 pt-4 border-t border-stone-900 text-[11px] text-stone-500 italic">
-                Resultado: Horas perdidas de atendimento e poucas vendas fechadas.
+              <div className="mt-8 pt-4 border-t border-stone-200 text-xs text-stone-500 font-medium">
+                Atendimento demorado e vendas perdidas por falta de agilidade.
               </div>
             </div>
 
-            {/* O Jeito CatálogoFlash */}
-            <div className="bg-gradient-to-b from-stone-900 to-stone-950 border border-amber-500/40 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xl shadow-amber-500/5">
+            {/* Com o CatálogoFlash */}
+            <div className="bg-[#18181B] text-stone-100 rounded-2xl p-6 sm:p-8 border border-stone-800 flex flex-col justify-between shadow-md">
               <div>
-                <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-400 text-xs font-bold px-3 py-1 rounded-full mb-5">
-                  <Check className="w-3.5 h-3.5 stroke-[3]" /> Com o CatálogoFlash
-                </div>
-                <h3 className="text-lg font-bold text-white mb-4">Experiência ágil de boutique moderna</h3>
+                <h3 className="font-bold text-white text-lg mb-4">
+                  Com o CatálogoFlash
+                </h3>
 
-                <ul className="space-y-3.5 text-xs sm:text-sm text-stone-200">
-                  <li className="flex items-start gap-2.5">
+                <ul className="space-y-4 text-xs sm:text-sm text-stone-300">
+                  <li className="flex items-start gap-3">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Um único link organizado, leve e visualmente irresistível.</span>
+                    <span>Um único link na bio do Instagram com catálogo moderno e rápido.</span>
                   </li>
-                  <li className="flex items-start gap-2.5">
+                  <li className="flex items-start gap-3">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Preço, tamanhos e fotos em alta definição com carregamento em milissegundos.</span>
+                    <span>Fotos nítidas que carregam em menos de 1 segundo mesmo no 4G.</span>
                   </li>
-                  <li className="flex items-start gap-2.5">
+                  <li className="flex items-start gap-3">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Controle de "Ativo / Esgotado" com 1 toque no painel do celular.</span>
+                    <span>Sacola multiprodutos: o cliente escolhe vários itens e envia tudo de uma vez.</span>
                   </li>
-                  <li className="flex items-start gap-2.5">
+                  <li className="flex items-start gap-3">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>O cliente já chega no WhatsApp com o pedido pronto: foto, nome e preço.</span>
+                    <span>Retenção automática com cupom de desconto em caso de inatividade.</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="mt-8 pt-4 border-t border-stone-800 text-[11px] text-amber-400 font-semibold">
-                Resultado: Atendimento em 10 segundos e fechamento imediato no PIX.
+              <div className="mt-8 pt-4 border-t border-stone-800 text-xs text-amber-300 font-semibold">
+                O cliente já chega decidido com o pedido montado no seu WhatsApp.
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Como Funciona em 3 Passos */}
-      <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-        <div className="text-center max-w-xl mx-auto mb-14">
-          <span className="text-amber-400 text-xs font-extrabold uppercase tracking-widest">
-            Simples assim
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-black text-white mt-2">
-            Como funciona em 3 passos
+      {/* Como Funciona em 3 Etapas Simples */}
+      <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+        <div className="max-w-xl mb-12">
+          <span className="text-xs font-semibold text-stone-500">Sem burocracia</span>
+          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-stone-900 mt-1.5">
+            Do produto ao pedido no WhatsApp em 3 passos
           </h2>
-          <p className="text-stone-400 text-xs sm:text-sm mt-3">
-            Você não precisa de designers, nem de computadores ou configurações complicadas.
-          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-stone-900/60 p-6 sm:p-7 rounded-3xl border border-stone-800/80 relative">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center font-black text-lg mb-5">
-              1
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">Tire a Foto na Arara</h3>
-            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-              Abra a câmera direto pelo painel no celular. O CatálogoFlash comprime e otimiza a foto automaticamente sem perder qualidade.
+          <div className="bg-white p-6 rounded-2xl border border-stone-200">
+            <span className="text-xs font-mono font-bold text-stone-400 block mb-3">01</span>
+            <h3 className="font-bold text-stone-900 text-base mb-1.5">Fotografe seus produtos</h3>
+            <p className="text-stone-600 text-xs sm:text-sm leading-relaxed">
+              Abra o painel pelo celular. Você tira a foto do produto com a câmera, preenche o
+              nome e o preço. A compressão para WebP é feita na hora.
             </p>
           </div>
 
-          <div className="bg-stone-900/60 p-6 sm:p-7 rounded-3xl border border-stone-800/80 relative">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center font-black text-lg mb-5">
-              2
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">Compartilhe Seu Link</h3>
-            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-              Coloque o link da sua loja no Instagram e mande para seus contatos. Sua vitrine fica online 24h sem cair e sem travar.
+          <div className="bg-white p-6 rounded-2xl border border-stone-200">
+            <span className="text-xs font-mono font-bold text-stone-400 block mb-3">02</span>
+            <h3 className="font-bold text-stone-900 text-base mb-1.5">Cole o link na bio</h3>
+            <p className="text-stone-600 text-xs sm:text-sm leading-relaxed">
+              Sua vitrine ganha um endereço próprio (ex: catalogoflash.com/sua-loja) que você divulga
+              nos Stories, grupos VIP e perfil do Instagram.
             </p>
           </div>
 
-          <div className="bg-stone-900/60 p-6 sm:p-7 rounded-3xl border border-stone-800/80 relative">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-black text-lg mb-5">
-              3
-            </div>
-            <h3 className="text-base font-bold text-white mb-2">Receba Pedidos Prontos</h3>
-            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-              O cliente clica em "Pedir no WhatsApp" e você recebe uma mensagem formatada com o produto desejado e o valor total.
+          <div className="bg-white p-6 rounded-2xl border border-stone-200">
+            <span className="text-xs font-mono font-bold text-stone-400 block mb-3">03</span>
+            <h3 className="font-bold text-stone-900 text-base mb-1.5">Receba pedidos prontos</h3>
+            <p className="text-stone-600 text-xs sm:text-sm leading-relaxed">
+              O cliente navega, salva produtos na sacola e envia a lista formatada direto no seu
+              WhatsApp. Você apenas passa a chave PIX e combina a entrega.
             </p>
           </div>
         </div>
       </section>
 
       {/* Dúvidas Frequentes (FAQ) */}
-      <section className="relative z-10 w-full bg-stone-900/40 border-t border-stone-800/80 py-16 sm:py-20">
+      <section className="w-full bg-white border-t border-stone-200/80 py-16 sm:py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
-            <span className="text-amber-400 text-xs font-extrabold uppercase tracking-widest">
-              Tire suas dúvidas
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white mt-2">
-              Perguntas Frequentes
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900">
+              Perguntas frequentes
             </h2>
+            <p className="text-xs sm:text-sm text-stone-500 mt-2">
+              Tudo o que você precisa saber para começar a usar hoje mesmo.
+            </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="divide-y divide-stone-200 border-y border-stone-200">
             {faqs.map((faq, index) => {
               const isOpen = openFaq === index;
               return (
-                <div
-                  key={index}
-                  className="bg-stone-900/80 border border-stone-800 rounded-2xl overflow-hidden transition"
-                >
+                <div key={index} className="py-4">
                   <button
+                    type="button"
                     onClick={() => toggleFaq(index)}
-                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-semibold text-sm sm:text-base text-stone-200 hover:text-white"
+                    className="w-full text-left flex items-center justify-between gap-4 font-semibold text-sm sm:text-base text-stone-900 hover:text-stone-600 cursor-pointer"
                   >
                     <span>{faq.q}</span>
                     <ChevronDown
                       className={`w-4 h-4 text-stone-400 transition-transform duration-200 shrink-0 ${
-                        isOpen ? 'rotate-180 text-amber-400' : ''
+                        isOpen ? 'rotate-180 text-stone-900' : ''
                       }`}
                     />
                   </button>
                   {isOpen && (
-                    <div className="px-4 sm:px-5 pb-5 text-xs sm:text-sm text-stone-400 leading-relaxed border-t border-stone-800/60 pt-3">
+                    <div className="mt-2 text-xs sm:text-sm text-stone-600 leading-relaxed pr-8">
                       {faq.a}
                     </div>
                   )}
@@ -398,39 +556,38 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
-        <div className="bg-gradient-to-b from-stone-900 to-stone-950 border border-amber-500/30 rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-500 text-stone-950 font-black text-xl mx-auto mb-4 shadow-lg shadow-amber-500/20">
+      {/* Chamada Final */}
+      <section className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
+        <div className="bg-[#18181B] text-white rounded-3xl p-8 sm:p-14 shadow-xl">
+          <span className="w-10 h-10 rounded-xl bg-amber-500 text-stone-950 font-black text-lg inline-flex items-center justify-center mb-4">
             ⚡
           </span>
-          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-            Pronto para profissionalizar o catálogo da sua loja?
+          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white max-w-lg mx-auto">
+            Pronto para profissionalizar a vitrine da sua loja?
           </h2>
-          <p className="text-stone-400 text-xs sm:text-sm max-w-md mx-auto mt-3">
-            Crie sua conta em 1 minuto. Comece a cadastrar suas peças hoje mesmo e transforme seus seguidores em pedidos no WhatsApp.
+          <p className="text-stone-400 text-xs sm:text-sm max-w-md mx-auto mt-3 leading-relaxed">
+            Cadastre sua loja em menos de um minuto. Fotografe os produtos do seu estoque e comece a
+            receber pedidos organizados hoje.
           </p>
 
           <div className="mt-8 flex justify-center">
             <Link
               href="/login"
-              className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-black text-base py-4 px-9 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 transition"
+              className="bg-white hover:bg-stone-100 text-stone-900 font-bold text-sm sm:text-base py-3.5 px-8 rounded-xl flex items-center justify-center gap-2 transition"
             >
-              <span>Criar Minha Loja Agora</span>
-              <ArrowRight className="w-4 h-4 stroke-[3]" />
+              <span>Criar minha vitrine grátis</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Rodapé */}
-      <footer className="w-full border-t border-stone-800/80 py-8 text-center text-xs text-stone-500 px-4 bg-stone-950">
+      {/* Rodapé Minimalista */}
+      <footer className="w-full border-t border-stone-200/80 py-8 text-xs text-stone-500 px-4 bg-[#FAF8F5]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-amber-500 font-bold">⚡ CatálogoFlash</span>
-            <span>— A vitrine digital mobile-first</span>
+            <span className="font-bold text-stone-900">CatálogoFlash</span>
+            <span>— Vitrine digital mobile-first para lojistas e comércio local</span>
           </div>
           <p>&copy; {new Date().getFullYear()} CatálogoFlash. Todos os direitos reservados.</p>
         </div>
