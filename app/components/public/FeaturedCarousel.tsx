@@ -3,7 +3,7 @@
 import useEmblaCarousel from 'embla-carousel-react';
 import { Product } from '@/services/api';
 import { MessageCircle, Sparkles, ShoppingBag, Check } from 'lucide-react';
-import { useCart } from '@/app/context/CartContext';
+import { useCart, normalizeImageUrl } from '@/app/context/CartContext';
 
 interface FeaturedCarouselProps {
   products: Product[];
@@ -56,7 +56,7 @@ export function FeaturedCarousel({ products, whatsapp }: FeaturedCarouselProps) 
                 {/* Foto em Largura Total */}
                 <div className="relative aspect-[4/5] w-full bg-stone-800 overflow-hidden">
                   <img
-                    src={product.imageUrl}
+                    src={normalizeImageUrl(product.imageUrl)}
                     alt={product.name}
                     className="w-full h-full object-cover"
                     loading="lazy"

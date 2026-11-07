@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
+
+const MASTER_EMAIL = 'santosray62@gmail.com';
 
 export default function LoginPage() {
   const router = useRouter();
   const [isRegister, setIsRegister] = useState(false);
+  const [isMasterLoggedIn, setIsMasterLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +19,27 @@ export default function LoginPage() {
   const [whatsapp, setWhatsapp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('expired=')) {
+      setSessionExpired(true);
+    }
+
+    try {
+      const storedUser = localStorage.getItem('catalogoflash_user');
+      const token = localStorage.getItem('catalogoflash_token');
+      if (storedUser) {
+        const u = JSON.parse(storedUser);
+        if (u.email?.toLowerCase() === MASTER_EMAIL.toLowerCase()) {
+          if (token) setIsMasterLoggedIn(true);
+          setEmail(u.email);
+        }
+      }
+    } catch {
+      // Ignora erro no parse do localStorage
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,13 +49,14 @@ export default function LoginPage() {
     try {
       let res;
       if (isRegister) {
+        const token = localStorage.getItem('catalogoflash_token') || undefined;
         res = await api.register({
           email,
           password,
           tenantName,
           tenantSlug,
           whatsapp,
-        });
+        }, token);
       } else {
         res = await api.login(email, password);
       }
@@ -60,6 +85,21 @@ export default function LoginPage() {
             {isRegister ? 'Crie sua loja e comece a vender em minutos' : 'Acesse o painel da sua loja'}
           </p>
         </div>
+
+        {sessionExpired && !error && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 text-xs p-3 rounded-xl mb-4">
+            ⚠️ <strong>Sessão expirada:</strong> Por favor, digite sua senha para entrar novamente no painel.
+          </div>
+        )}
+
+        {isRegister && isMasterLoggedIn && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 text-xs p-3 rounded-xl mb-4 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>
+              <strong>Admin Master Ativo:</strong> autorização confirmada para cadastrar novas lojas.
+            </span>
+          </div>
+        )}
 
         {error && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl mb-4">

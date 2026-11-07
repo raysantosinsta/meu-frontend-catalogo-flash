@@ -55,16 +55,26 @@ export const api = {
     return res.json();
   },
 
-  async register(data: {
-    email: string;
-    password: string;
-    tenantName: string;
-    tenantSlug: string;
-    whatsapp: string;
-  }): Promise<AuthResponse> {
+  async register(
+    data: {
+      email: string;
+      password: string;
+      tenantName: string;
+      tenantSlug: string;
+      whatsapp: string;
+    },
+    token?: string,
+  ): Promise<AuthResponse> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const authToken =
+      token || (typeof window !== 'undefined' ? localStorage.getItem('catalogoflash_token') : null);
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -74,12 +84,70 @@ export const api = {
     return res.json();
   },
 
+  async createStoreAsMaster(
+    token: string,
+    data: {
+      email: string;
+      password: string;
+      tenantName: string;
+      tenantSlug: string;
+      whatsapp: string;
+    },
+  ): Promise<AuthResponse> {
+    const res = await fetch(`${API_URL}/auth/admin/create-store`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || 'Erro ao cadastrar nova loja.');
+    }
+    return res.json();
+  },
+
+  async getAllTenants(token: string): Promise<any[]> {
+    const res = await fetch(`${API_URL}/tenants`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || 'Erro ao buscar lojas.');
+    }
+    return res.json();
+  },
+
+  async switchTenant(token: string, tenantId: string): Promise<AuthResponse> {
+    const res = await fetch(`${API_URL}/auth/switch-tenant/${tenantId}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || 'Erro ao alternar de loja.');
+    }
+    return res.json();
+  },
+
   // Admin Produtos (requer token)
   async getAdminProducts(token: string): Promise<Product[]> {
     const res = await fetch(`${API_URL}/products`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) throw new Error('Erro ao listar produtos.');
+    if (!res.ok) {
+      if (res.status === 401) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('catalogoflash_token');
+          window.location.href = '/login?expired=true';
+        }
+        throw new Error('Sua sessão expirou. Redirecionando para login...');
+      }
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || `Erro ao listar produtos (${res.status}).`);
+    }
     return res.json();
   },
 
@@ -90,8 +158,29 @@ export const api = {
       body: formData,
     });
     if (!res.ok) {
+      if (res.status === 401 && typeof window !== 'undefined') {
+        localStorage.removeItem('catalogoflash_token');
+        window.location.href = '/login?expired=true';
+      }
       const error = await res.json().catch(() => ({}));
       throw new Error(error.message || 'Erro ao cadastrar produto.');
+    }
+    return res.json();
+  },
+
+  async updateProduct(token: string, id: string, formData: FormData): Promise<Product> {
+    const res = await fetch(`${API_URL}/products/${id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) {
+      if (res.status === 401 && typeof window !== 'undefined') {
+        localStorage.removeItem('catalogoflash_token');
+        window.location.href = '/login?expired=true';
+      }
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || 'Erro ao atualizar produto.');
     }
     return res.json();
   },
@@ -109,7 +198,14 @@ export const api = {
       },
       body: JSON.stringify(status),
     });
-    if (!res.ok) throw new Error('Erro ao atualizar status do produto.');
+    if (!res.ok) {
+      if (res.status === 401 && typeof window !== 'undefined') {
+        localStorage.removeItem('catalogoflash_token');
+        window.location.href = '/login?expired=true';
+      }
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || 'Erro ao atualizar status do produto.');
+    }
     return res.json();
   },
 
@@ -118,6 +214,13 @@ export const api = {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) throw new Error('Erro ao deletar produto.');
+    if (!res.ok) {
+      if (res.status === 401 && typeof window !== 'undefined') {
+        localStorage.removeItem('catalogoflash_token');
+        window.location.href = '/login?expired=true';
+      }
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || 'Erro ao deletar produto.');
+    }
   },
 };

@@ -2,7 +2,7 @@
 
 import { Product } from '@/services/api';
 import { MessageCircle, Sparkles, ShoppingBag, Check } from 'lucide-react';
-import { useCart } from '@/app/context/CartContext';
+import { useCart, normalizeImageUrl } from '@/app/context/CartContext';
 
 interface ProductCardProps {
   product: Product;
@@ -35,7 +35,7 @@ export function ProductCard({ product, whatsapp }: ProductCardProps) {
       {/* Imagem em Largura Total */}
       <div className="relative aspect-[4/5] w-full bg-stone-100 overflow-hidden">
         <img
-          src={product.imageUrl}
+          src={normalizeImageUrl(product.imageUrl)}
           alt={product.name}
           className="w-full h-full object-cover"
           loading="lazy"

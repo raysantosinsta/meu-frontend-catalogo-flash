@@ -8,6 +8,18 @@ export interface CartItem {
   quantity: number;
 }
 
+export function normalizeImageUrl(url?: string): string {
+  if (!url) return '';
+  // Converte URLs privadas antigas do R2 para a URL pública pub-xxx.r2.dev
+  if (url.includes('.r2.cloudflarestorage.com')) {
+    return url.replace(
+      /https:\/\/[^/]+\.r2\.cloudflarestorage\.com/g,
+      'https://pub-26ae5bdf8e824fa9b97c006a492c69b4.r2.dev'
+    );
+  }
+  return url;
+}
+
 interface CartContextData {
   items: CartItem[];
   addToCart: (product: Product) => void;
@@ -42,7 +54,15 @@ export function CartProvider({ children, tenantSlug }: CartProviderProps) {
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
-        setItems(JSON.parse(saved));
+        const parsed: CartItem[] = JSON.parse(saved);
+        const normalized = parsed.map((item) => ({
+          ...item,
+          product: {
+            ...item.product,
+            imageUrl: normalizeImageUrl(item.product?.imageUrl),
+          },
+        }));
+        setItems(normalized);
       }
     } catch {
       // Ignorar erros de storage (ex: navegação anônima com restrição)
@@ -62,16 +82,20 @@ export function CartProvider({ children, tenantSlug }: CartProviderProps) {
   }, [items, isHydrated, storageKey]);
 
   const addToCart = (product: Product) => {
+    const cleanProduct: Product = {
+      ...product,
+      imageUrl: normalizeImageUrl(product.imageUrl),
+    };
     setItems((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
+      const existing = prev.find((item) => item.product.id === cleanProduct.id);
       if (existing) {
         return prev.map((item) =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+          item.product.id === cleanProduct.id
+            ? { ...item, product: cleanProduct, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product: cleanProduct, quantity: 1 }];
     });
   };
 

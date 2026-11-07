@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { X, Trash2, Plus, Minus, MessageCircle, ShoppingBag } from 'lucide-react';
-import { useCart } from '@/app/context/CartContext';
+import { useCart, normalizeImageUrl } from '@/app/context/CartContext';
 
 interface CartDrawerProps {
   whatsapp: string;
@@ -133,11 +133,34 @@ export function CartDrawer({ whatsapp, storeName }: CartDrawerProps) {
                   className="flex gap-3 p-3 bg-stone-50 rounded-2xl border border-stone-100 items-center justify-between"
                 >
                   {/* Foto Miniatura */}
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="w-16 h-20 rounded-xl object-cover bg-stone-200 shrink-0 border border-stone-200"
-                  />
+                  <div className="w-16 h-20 rounded-xl overflow-hidden bg-stone-100 shrink-0 border border-stone-200 relative flex items-center justify-center">
+                    {product.imageUrl ? (
+                      <img
+                        src={normalizeImageUrl(product.imageUrl)}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.src.includes('pub-26ae5bdf8e824fa9b97c006a492c69b4.r2.dev') && target.src.includes('tenants/')) {
+                            const key = target.src.substring(target.src.indexOf('tenants/'));
+                            target.src = `https://pub-26ae5bdf8e824fa9b97c006a492c69b4.r2.dev/${key}`;
+                          } else {
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement | null;
+                            if (fallback) fallback.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className={`w-full h-full flex flex-col items-center justify-center text-stone-400 bg-stone-100 ${
+                        product.imageUrl ? 'hidden' : 'flex'
+                      }`}
+                    >
+                      <ShoppingBag className="w-5 h-5 text-stone-300" />
+                      <span className="text-[9px] text-stone-400 font-medium">Sem foto</span>
+                    </div>
+                  </div>
 
                   {/* Informações */}
                   <div className="flex-1 min-w-0 pr-2">
