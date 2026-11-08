@@ -1,7 +1,7 @@
 import { api } from '@/services/api';
 import { FeaturedCarousel } from '../components/public/FeaturedCarousel';
 import { ProductGrid } from '../components/public/ProductGrid';
-import { CartProvider, formatWhatsAppNumber } from '../context/CartContext';
+import { CartProvider } from '../context/CartContext';
 import { FloatingCartBar } from '../components/public/FloatingCartBar';
 import { CartDrawer } from '../components/public/CartDrawer';
 import { ExitIntentModal } from '../components/public/ExitIntentModal';
@@ -23,6 +23,8 @@ export default async function TenantCatalogPage({ params }: TenantPageProps) {
   }
 
   const { name, logoUrl, whatsapp, featuredProducts, products } = tenantData;
+  const rawNumber = (whatsapp || '').replace(/\D/g, '');
+  const cleanNumber = (rawNumber.length === 10 || rawNumber.length === 11) ? `55${rawNumber}` : rawNumber;
 
   return (
     <CartProvider
@@ -53,7 +55,7 @@ export default async function TenantCatalogPage({ params }: TenantPageProps) {
             <div className="flex items-center gap-2">
               <HeaderCartButton />
               <a
-                href={`https://wa.me/${formatWhatsAppNumber(whatsapp)}`}
+                href={`https://wa.me/${cleanNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs bg-stone-100 hover:bg-stone-200 font-semibold px-2.5 py-1.5 rounded-lg text-stone-700 transition"
