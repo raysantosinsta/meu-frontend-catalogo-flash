@@ -53,7 +53,7 @@ export function CartDrawer({ whatsapp, storeName }: CartDrawerProps) {
       'Poderia me confirmar a disponibilidade e como finalizar?',
     ].join('\n');
 
-    const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/+55${cleanNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
 

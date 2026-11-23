@@ -24,7 +24,7 @@ export function ProductCard({ product, whatsapp }: ProductCardProps) {
     `Olá! Tenho interesse no produto: *${product.name}* (${formattedPrice}) do catálogo online. Ainda está disponível?`
   );
 
-  const whatsappUrl = `https://wa.me/${cleanNumber}?text=${whatsappMessage}`;
+  const whatsappUrl = `https://wa.me/+55${cleanNumber}?text=${whatsappMessage}`;
 
   return (
     <div

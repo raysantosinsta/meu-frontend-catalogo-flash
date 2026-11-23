@@ -100,7 +100,7 @@ export function ExitIntentModal({
     const text = encodeURIComponent(
       `Olá! Peguei o cupom especial *${couponCode}* (${discountPercent}% OFF) no catálogo da *${storeName}* e gostaria de aproveitá-lo no meu pedido!`
     );
-    window.open(`https://wa.me/${cleanNumber}?text=${text}`, '_blank', 'noopener,noreferrer');
+    window.open(`https://wa.me/+55${cleanNumber}?text=${text}`, '_blank', 'noopener,noreferrer');
     setIsOpen(false);
   };
 

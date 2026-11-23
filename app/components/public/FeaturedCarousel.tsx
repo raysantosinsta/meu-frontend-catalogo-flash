@@ -42,7 +42,7 @@ export function FeaturedCarousel({ products, whatsapp }: FeaturedCarouselProps) 
             const whatsappMessage = encodeURIComponent(
               `Olá! Vi o destaque *${product.name}* (${formattedPrice}) no catálogo e gostaria de pedir!`
             );
-            const whatsappUrl = `https://wa.me/${cleanNumber}?text=${whatsappMessage}`;
+            const whatsappUrl = `https://wa.me/+55${cleanNumber}?text=${whatsappMessage}`;
             const inCart = isInCart(product.id);
             const qty = getItemQuantity(product.id);
 

@@ -55,7 +55,7 @@ export default async function TenantCatalogPage({ params }: TenantPageProps) {
             <div className="flex items-center gap-2">
               <HeaderCartButton />
               <a
-                href={`https://wa.me/${cleanNumber}`}
+                href={`https://wa.me/+55${cleanNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs bg-stone-100 hover:bg-stone-200 font-semibold px-2.5 py-1.5 rounded-lg text-stone-700 transition"
