@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { X, Sparkles, Copy, Check, MessageCircle, Flame } from 'lucide-react';
+
+const TWO_MINUTES_MS = 2 * 60 * 1000; // 2 minutos (120.000 ms)
 
 interface ExitIntentModalProps {
   whatsapp: string;
@@ -19,10 +21,16 @@ export function ExitIntentModal({
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const mountTimeRef = useRef<number>(Date.now());
   const cleanNumber = whatsapp.replace(/\D/g, '');
   const storageKey = `flash_exit_intent_${storeName.toLowerCase().replace(/\s+/g, '_')}`;
 
   const triggerModal = useCallback(() => {
+    // Só permitir a exibição após pelo menos 2 minutos de permanência na página
+    if (Date.now() - mountTimeRef.current < TWO_MINUTES_MS) {
+      return;
+    }
+
     // Verificar se já foi exibido nesta sessão
     if (typeof window !== 'undefined' && sessionStorage.getItem(storageKey)) {
       return;
@@ -38,24 +46,17 @@ export function ExitIntentModal({
 
     if (sessionStorage.getItem(storageKey)) return;
 
-    // 1. Detecção para Desktop: Movimento do cursor para fora do topo da janela
+    // 1. Detecção para Desktop: Movimento do cursor para fora do topo da janela (após 2 minutos)
     const handleMouseLeave = (e: MouseEvent) => {
       if (e.clientY <= 10) {
         triggerModal();
       }
     };
 
-    // 2. Detecção por Inatividade: 25 segundos sem interação do usuário
-    let inactivityTimer = setTimeout(() => {
+    // 2. Exibição automática do cupom após 2 minutos no catálogo
+    const timer = setTimeout(() => {
       triggerModal();
-    }, 25000);
-
-    const resetInactivity = () => {
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(() => {
-        triggerModal();
-      }, 35000);
-    };
+    }, TWO_MINUTES_MS);
 
     // 3. Detecção Mobile via Histórico (Back Button)
     let historyTrapArmed = false;
@@ -77,16 +78,12 @@ export function ExitIntentModal({
     window.addEventListener('scroll', handleFirstScroll, { passive: true });
     window.addEventListener('popstate', handlePopState);
     document.addEventListener('mouseleave', handleMouseLeave);
-    window.addEventListener('touchstart', resetInactivity, { passive: true });
-    window.addEventListener('click', resetInactivity);
 
     return () => {
-      clearTimeout(inactivityTimer);
+      clearTimeout(timer);
       window.removeEventListener('scroll', handleFirstScroll);
       window.removeEventListener('popstate', handlePopState);
       document.removeEventListener('mouseleave', handleMouseLeave);
-      window.removeEventListener('touchstart', resetInactivity);
-      window.removeEventListener('click', resetInactivity);
     };
   }, [triggerModal, storageKey]);
 
