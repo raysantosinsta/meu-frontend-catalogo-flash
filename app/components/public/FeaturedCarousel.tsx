@@ -2,7 +2,7 @@
 
 import useEmblaCarousel from 'embla-carousel-react';
 import { Product } from '@/services/api';
-import { MessageCircle, Sparkles, ShoppingBag, Check } from 'lucide-react';
+import { MessageCircle, Sparkles, ShoppingBag, Check, ExternalLink } from 'lucide-react';
 import { useCart, normalizeImageUrl } from '@/app/context/CartContext';
 
 interface FeaturedCarouselProps {
@@ -35,6 +35,7 @@ export function FeaturedCarousel({ products, whatsapp }: FeaturedCarouselProps) 
       <div className="overflow-hidden px-4" ref={emblaRef}>
         <div className="flex gap-4">
           {products.map((product) => {
+            const isAffiliate = Boolean(product.isAffiliate);
             const formattedPrice = Number(product.price).toLocaleString('pt-BR', {
               style: 'currency',
               currency: 'BRL',
@@ -55,29 +56,67 @@ export function FeaturedCarousel({ products, whatsapp }: FeaturedCarouselProps) 
               >
                 {/* Foto em Largura Total */}
                 <div className="relative aspect-[4/5] w-full bg-stone-800 overflow-hidden">
-                  <img
-                    src={normalizeImageUrl(product.imageUrl)}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  <span className="absolute top-3 left-3 bg-amber-500 text-stone-950 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full shadow flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 fill-stone-950" /> Destaque
-                  </span>
+                  {isAffiliate && product.affiliateUrl ? (
+                    <a
+                      href={product.affiliateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full h-full"
+                      title="Clique para ver a oferta na loja parceira"
+                    >
+                      <img
+                        src={normalizeImageUrl(product.imageUrl)}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        loading="lazy"
+                      />
+                    </a>
+                  ) : (
+                    <img
+                      src={normalizeImageUrl(product.imageUrl)}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
 
-                  {/* Atalho Rápido de Sacola na Imagem */}
-                  <button
-                    type="button"
-                    onClick={() => addToCart(product)}
-                    className={`absolute top-3 right-3 p-2.5 rounded-full shadow-md backdrop-blur-md transition-all active:scale-90 cursor-pointer ${
-                      inCart
-                        ? 'bg-emerald-500 text-stone-950 ring-2 ring-white shadow-emerald-500/30'
-                        : 'bg-stone-900/80 hover:bg-stone-900 text-white'
-                    }`}
-                    title={inCart ? `Na sacola (${qty}) - Clique para adicionar mais um` : 'Adicionar à sacola'}
-                  >
-                    {inCart ? <Check className="w-4 h-4 stroke-[3]" /> : <ShoppingBag className="w-4 h-4" />}
-                  </button>
+                  {/* Badges */}
+                  <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
+                    <span className="bg-amber-500 text-stone-950 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full shadow flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 fill-stone-950" /> Destaque
+                    </span>
+                    {isAffiliate && (
+                      <span className="bg-stone-950/85 backdrop-blur-xs text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow flex items-center gap-1">
+                        <ExternalLink className="w-3 h-3 text-amber-400" /> Loja Parceira
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Atalho Rápido de Sacola / Link na Imagem */}
+                  {isAffiliate && product.affiliateUrl ? (
+                    <a
+                      href={product.affiliateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute top-3 right-3 p-2.5 rounded-full shadow-md backdrop-blur-md bg-stone-900/80 hover:bg-stone-900 text-white transition-all active:scale-90"
+                      title="Ver na loja parceira"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => addToCart(product)}
+                      className={`absolute top-3 right-3 p-2.5 rounded-full shadow-md backdrop-blur-md transition-all active:scale-90 cursor-pointer ${
+                        inCart
+                          ? 'bg-emerald-500 text-stone-950 ring-2 ring-white shadow-emerald-500/30'
+                          : 'bg-stone-900/80 hover:bg-stone-900 text-white'
+                      }`}
+                      title={inCart ? `Na sacola (${qty}) - Clique para adicionar mais um` : 'Adicionar à sacola'}
+                    >
+                      {inCart ? <Check className="w-4 h-4 stroke-[3]" /> : <ShoppingBag className="w-4 h-4" />}
+                    </button>
+                  )}
                 </div>
 
                 {/* Informações Abaixo da Foto */}
@@ -101,38 +140,52 @@ export function FeaturedCarousel({ products, whatsapp }: FeaturedCarouselProps) 
 
                   {/* Ações */}
                   <div className="pt-3 border-t border-stone-800 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => addToCart(product)}
-                      className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold py-3 px-3 rounded-2xl transition active:scale-95 cursor-pointer ${
-                        inCart
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                          : 'bg-stone-800 hover:bg-stone-700 text-white border border-stone-700'
-                      }`}
-                    >
-                      {inCart ? (
-                        <>
-                          <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />
-                          <span>Na Sacola ({qty})</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingBag className="w-4 h-4 text-stone-300" />
-                          <span>+ Sacola</span>
-                        </>
-                      )}
-                    </button>
+                    {isAffiliate ? (
+                      <a
+                        href={product.affiliateUrl || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-[0.98] text-stone-950 font-black text-xs sm:text-sm py-3.5 px-4 rounded-2xl transition shadow-md"
+                      >
+                        <ExternalLink className="w-4 h-4 stroke-[2.5]" />
+                        <span>Ver Oferta na Loja</span>
+                      </a>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => addToCart(product)}
+                          className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold py-3 px-3 rounded-2xl transition active:scale-95 cursor-pointer ${
+                            inCart
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                              : 'bg-stone-800 hover:bg-stone-700 text-white border border-stone-700'
+                          }`}
+                        >
+                          {inCart ? (
+                            <>
+                              <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />
+                              <span>Na Sacola ({qty})</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingBag className="w-4 h-4 text-stone-300" />
+                              <span>+ Sacola</span>
+                            </>
+                          )}
+                        </button>
 
-                    <a
-                      href={whatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-stone-950 font-bold text-xs sm:text-sm py-3 px-3.5 rounded-2xl transition shadow-md"
-                      title="Pedir apenas este destaque no WhatsApp"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="hidden xs:inline">Pedir</span>
-                    </a>
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-stone-950 font-bold text-xs sm:text-sm py-3 px-3.5 rounded-2xl transition shadow-md"
+                          title="Pedir apenas este destaque no WhatsApp"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span className="hidden xs:inline">Pedir</span>
+                        </a>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

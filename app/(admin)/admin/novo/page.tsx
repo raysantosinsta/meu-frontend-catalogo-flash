@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CameraCapture } from '@/app/components/admin/CameraCapture';
 import { api } from '@/services/api';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, Link2, Package } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NovoProdutoPage() {
@@ -14,6 +14,8 @@ export default function NovoProdutoPage() {
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
+  const [isAffiliate, setIsAffiliate] = useState(false);
+  const [affiliateUrl, setAffiliateUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,6 +24,17 @@ export default function NovoProdutoPage() {
     if (!photo) {
       setError('Por favor, tire ou selecione a foto do produto.');
       return;
+    }
+
+    let formattedUrl = affiliateUrl.trim();
+    if (isAffiliate) {
+      if (!formattedUrl) {
+        setError('Por favor, insira o link de afiliado.');
+        return;
+      }
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = 'https://' + formattedUrl;
+      }
     }
 
     const token = localStorage.getItem('catalogoflash_token');
@@ -40,6 +53,10 @@ export default function NovoProdutoPage() {
       formData.append('price', price);
       if (description) formData.append('description', description);
       formData.append('isFeatured', String(isFeatured));
+      formData.append('isAffiliate', String(isAffiliate));
+      if (isAffiliate && formattedUrl) {
+        formData.append('affiliateUrl', formattedUrl);
+      }
 
       await api.createProduct(token, formData);
       router.push('/admin');
@@ -74,6 +91,68 @@ export default function NovoProdutoPage() {
 
         {/* Campos Rápidos */}
         <div className="bg-white p-4 rounded-3xl border border-stone-200 space-y-3.5 shadow-sm">
+          {/* Seletor Tipo de Produto */}
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+              Tipo de Produto *
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setIsAffiliate(false)}
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl border text-xs font-bold transition cursor-pointer ${
+                  !isAffiliate
+                    ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                    : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border-stone-200'
+                }`}
+              >
+                <Package className="w-4 h-4" />
+                <span>Produto Próprio</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsAffiliate(true)}
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl border text-xs font-bold transition cursor-pointer ${
+                  isAffiliate
+                    ? 'bg-amber-500 text-stone-950 border-amber-500 shadow-xs'
+                    : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border-stone-200'
+                }`}
+              >
+                <Link2 className="w-4 h-4" />
+                <span>Produto Afiliado</span>
+              </button>
+            </div>
+            <p className="text-[11px] text-stone-400 mt-1.5">
+              {!isAffiliate
+                ? '📦 Venda normal: pedidos vão para a sacola e para o seu WhatsApp.'
+                : '🔗 Afiliado: o cliente será direcionado para o seu link externo oficial.'}
+            </p>
+          </div>
+
+          {/* Campo Link de Afiliado (se produto afiliado) */}
+          {isAffiliate && (
+            <div className="bg-amber-50/80 p-3.5 rounded-2xl border border-amber-200/80 space-y-1.5 animate-in fade-in duration-200">
+              <label className="block text-xs font-bold text-amber-950">
+                Link de Afiliado (URL de Compra) *
+              </label>
+              <div className="relative">
+                <input
+                  type="url"
+                  required={isAffiliate}
+                  placeholder="https://shopee.com.br/... ou https://amzn.to/..."
+                  value={affiliateUrl}
+                  onChange={(e) => setAffiliateUrl(e.target.value)}
+                  className="w-full text-xs sm:text-sm pl-9 pr-3.5 py-2.5 rounded-xl border border-amber-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
+                />
+                <Link2 className="w-4 h-4 text-amber-600 absolute left-3 top-1/2 -translate-y-1/2" />
+              </div>
+              <span className="text-[10px] text-amber-800 block">
+                Ao clicar em "Ver Oferta", o cliente será redirecionado para este link com o seu código de afiliado.
+              </span>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-stone-700 mb-1">
               Nome da Peça *

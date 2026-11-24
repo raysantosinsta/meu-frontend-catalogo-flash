@@ -19,6 +19,8 @@ import {
   Pencil,
   Camera,
   Image as ImageIcon,
+  Link2,
+  Package,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -39,6 +41,8 @@ export default function AdminDashboardPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editIsFeatured, setEditIsFeatured] = useState(false);
   const [editIsActive, setEditIsActive] = useState(true);
+  const [editIsAffiliate, setEditIsAffiliate] = useState(false);
+  const [editAffiliateUrl, setEditAffiliateUrl] = useState('');
   const [editNewPhoto, setEditNewPhoto] = useState<File | null>(null);
   const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
   const [editLoading, setEditLoading] = useState(false);
@@ -210,6 +214,8 @@ export default function AdminDashboardPage() {
     setEditDescription(product.description || '');
     setEditIsFeatured(Boolean(product.isFeatured));
     setEditIsActive(product.isActive !== false);
+    setEditIsAffiliate(Boolean(product.isAffiliate));
+    setEditAffiliateUrl(product.affiliateUrl || '');
     setEditNewPhoto(null);
     setEditPhotoPreview(normalizeImageUrl(product.imageUrl));
     setEditError('');
@@ -236,6 +242,18 @@ export default function AdminDashboardPage() {
     setEditLoading(true);
     setEditError('');
 
+    let formattedUrl = editAffiliateUrl.trim();
+    if (editIsAffiliate) {
+      if (!formattedUrl) {
+        setEditError('Por favor, insira o link de afiliado.');
+        setEditLoading(false);
+        return;
+      }
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = 'https://' + formattedUrl;
+      }
+    }
+
     try {
       const formData = new FormData();
       if (editNewPhoto) {
@@ -246,6 +264,8 @@ export default function AdminDashboardPage() {
       formData.append('description', editDescription.trim());
       formData.append('isFeatured', String(editIsFeatured));
       formData.append('isActive', String(editIsActive));
+      formData.append('isAffiliate', String(editIsAffiliate));
+      formData.append('affiliateUrl', editIsAffiliate ? formattedUrl : '');
 
       const updated = await api.updateProduct(token, editingProduct.id, formData);
       setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? updated : p)));
@@ -639,6 +659,63 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
+              {/* Seletor Tipo de Produto na Edição */}
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Tipo de Produto *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditIsAffiliate(false)}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                      !editIsAffiliate
+                        ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                        : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border-stone-200'
+                    }`}
+                  >
+                    <Package className="w-3.5 h-3.5" />
+                    <span>Produto Próprio</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditIsAffiliate(true)}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                      editIsAffiliate
+                        ? 'bg-amber-500 text-stone-950 border-amber-500 shadow-xs'
+                        : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border-stone-200'
+                    }`}
+                  >
+                    <Link2 className="w-3.5 h-3.5" />
+                    <span>Produto Afiliado</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Campo Link de Afiliado na Edição */}
+              {editIsAffiliate && (
+                <div className="bg-amber-50/80 p-3 rounded-xl border border-amber-200/80 space-y-1.5 animate-in fade-in duration-200">
+                  <label className="block text-xs font-bold text-amber-950">
+                    Link de Afiliado (URL de Compra) *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="url"
+                      required={editIsAffiliate}
+                      placeholder="https://shopee.com.br/... ou https://amzn.to/..."
+                      value={editAffiliateUrl}
+                      onChange={(e) => setEditAffiliateUrl(e.target.value)}
+                      className="w-full text-xs pl-8 pr-3 py-2 rounded-lg border border-amber-300 bg-white text-stone-900 focus:outline-none focus:border-amber-600"
+                    />
+                    <Link2 className="w-3.5 h-3.5 text-amber-600 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  </div>
+                  <span className="text-[10px] text-amber-800 block">
+                    Link externo para onde o cliente será redirecionado ao comprar.
+                  </span>
+                </div>
+              )}
+
               {/* Nome */}
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
@@ -799,11 +876,16 @@ export default function AdminDashboardPage() {
                   />
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <h3 className="font-semibold text-xs text-stone-900 truncate">{p.name}</h3>
                       {p.isFeatured && (
                         <span className="bg-amber-100 text-amber-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
                           ⚡ Top
+                        </span>
+                      )}
+                      {p.isAffiliate && (
+                        <span className="bg-blue-100 text-blue-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
+                          <Link2 className="w-2.5 h-2.5" /> Afiliado
                         </span>
                       )}
                     </div>

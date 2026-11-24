@@ -9,6 +9,8 @@ export interface Product {
   imageKey?: string;
   isFeatured: boolean;
   isActive: boolean;
+  isAffiliate?: boolean;
+  affiliateUrl?: string | null;
   tenantId: string;
   createdAt: string;
 }
